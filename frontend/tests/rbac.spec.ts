@@ -19,7 +19,9 @@ async function signIn(page: Page, email: string) {
   await page.waitForURL("/")
 }
 
-test("member sees no privileged nav and is told why on /admin", async ({ page }) => {
+test("member sees no privileged nav and is told why on /admin", async ({
+  page,
+}) => {
   await signIn(page, "member@example.com")
 
   await expect(page.getByRole("link", { name: "Dashboard" })).toBeVisible()
@@ -31,7 +33,9 @@ test("member sees no privileged nav and is told why on /admin", async ({ page })
   await expect(page).toHaveURL(/\/admin$/) // an explicit refusal, not a redirect
 })
 
-test("manager lists users and views metrics but cannot create users", async ({ page }) => {
+test("manager lists users and views metrics but cannot create users", async ({
+  page,
+}) => {
   await signIn(page, "manager@example.com")
   await expect(page.getByRole("link", { name: "Admin" })).toBeVisible()
 
@@ -40,6 +44,9 @@ test("manager lists users and views metrics but cannot create users", async ({ p
   // on a page that failed to load at all.
   await expect(page.getByText("manager@example.com")).toBeVisible()
   await expect(page.getByRole("button", { name: "Add User" })).toHaveCount(0)
+  await expect(
+    page.getByRole("button", { name: /User actions for/ }),
+  ).toHaveCount(0)
 
   await page.goto("/metrics")
   await expect(page.getByText("Total users")).toBeVisible()
@@ -51,6 +58,9 @@ test("admin can reach every gated surface", async ({ page }) => {
   await page.goto("/admin")
   await expect(page.getByText("manager@example.com")).toBeVisible()
   await expect(page.getByRole("button", { name: "Add User" })).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: /User actions for/ }).first(),
+  ).toBeVisible()
 
   await page.goto("/metrics")
   await expect(page.getByText("Total users")).toBeVisible()

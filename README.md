@@ -204,8 +204,8 @@ Role-aware UI behaviour (needs the stack up and seeded):
 
 ```bash
 cd frontend
-bunx playwright install chromium
-PLAYWRIGHT_BASE_URL=http://localhost:8000 bunx playwright test tests/rbac.spec.ts
+bun x playwright install chromium
+PLAYWRIGHT_BASE_URL=http://localhost:8000 bun x playwright test tests/rbac.spec.ts
 ```
 
 `frontend/tests/rbac.spec.ts` asserts the hidden nav entries, the **Access
