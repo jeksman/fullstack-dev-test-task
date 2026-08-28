@@ -1,221 +1,88 @@
-# Fullstack-Dev-Test-Task
+# Full Stack FastAPI Template
 
-This is a task to test potential candidate skills in Python + SQL + TypeScript.
+[![Test Docker Compose](../../actions/workflows/test-docker-compose.yml/badge.svg)](../../actions/workflows/test-docker-compose.yml)
+[![Test Backend](../../actions/workflows/test-backend.yml/badge.svg)](../../actions/workflows/test-backend.yml)
 
-- **Assignment**: Add Role-Aware Access + Architecture Decisions + **Run the app**
-- **Timebox**: Aim for up to 1 hour. If you cut scope, say what you cut and why.
+## Technology Stack and Features
 
+- ⚡ [**FastAPI**](https://fastapi.tiangolo.com) for the Python backend API.
+  - 🧰 [SQLModel](https://sqlmodel.tiangolo.com) for the Python SQL database interactions (ORM).
+  - 🔍 [Pydantic](https://docs.pydantic.dev), used by FastAPI, for the data validation and settings management.
+  - 💾 [PostgreSQL](https://www.postgresql.org) as the SQL database.
+- 🚀 [React](https://react.dev) for the frontend.
+  - 🧩 Built into the backend application and served by FastAPI on the same domain as the API.
+  - 💃 Using TypeScript, hooks, [Vite](https://vitejs.dev), and other parts of a modern frontend stack.
+  - 🎨 [Tailwind CSS](https://tailwindcss.com) and [shadcn/ui](https://ui.shadcn.com) for the frontend components.
+  - 🤖 An automatically generated frontend client.
+  - 🧪 [Playwright](https://playwright.dev) for end-to-end testing.
+  - 🦇 Dark mode support.
+- ☁️ [FastAPI Cloud](https://fastapicloud.com) for deployment.
+- 🐋 [Docker Compose](https://www.docker.com) for local services and self-hosted deployment.
+  - 📞 [Traefik](https://traefik.io) as a reverse proxy with automatic HTTPS.
+- 🔒 Secure password hashing by default.
+- 🔑 JWT (JSON Web Token) authentication.
+- 📫 Email-based password recovery.
+- ✉️ [React Email](https://react.email) for email templates.
+- 📬 [Mailpit](https://mailpit.axllent.org) for local email testing during development.
+- ✅ Tests with [Pytest](https://pytest.org).
+- 🏭 CI (continuous integration) and CD (continuous deployment) based on GitHub Actions.
 
-## Table of Contents
+### Dashboard Login
 
-- [Goal](#goal)
-- [Base Template](#base-template)
-- [Suggested Time Allocation](#suggested-time-allocation)
-- [Requirements](#requirements)
-  - [1. Clone the Base Template](#1-clone-the-base-template)
-  - [2. Roles and Authorization Surface](#2-roles-and-authorization-surface)
-  - [3. Code Quality Expectations](#3-code-quality-expectations)
-  - [4. Architecture & Documentation](#4-architecture--documentation)
-  - [5. Non-Functional Requirements](#5-non-functional-requirements)
-  - [6. UX Behavior](#6-ux-behavior)
-  - [7. Developer UX](#7-developer-ux)
-- [Constraints](#constraints)
-- [What We Review](#what-we-review)
-- [Submission](#submission)
+![Dashboard login screenshot](img/login.png)
 
-## Goal
+### Dashboard - Admin
 
-Add role-based access control (RBAC) to the existing Full-Stack FastAPI Template so that only authorized users can access sensitive endpoints and UI sections.
+![Admin dashboard screenshot](img/dashboard.png)
 
-**We prioritize clean, maintainable code over comprehensive test coverage or extensive documentation.**
+### Dashboard - Items
 
-You may reuse any libraries already in the template.
+![Items dashboard screenshot](img/dashboard-items.png)
 
-> **Note**: RBAC can be implemented with simple role checks or a small policy layer. Keep scope tight. Favor clarity over cleverness.
+### Dashboard - Dark Mode
 
-## Base Template
+![Dark mode dashboard screenshot](img/dashboard-dark.png)
 
-**Tech Stack**:
-- **Backend**: FastAPI / SQLModel / PostgreSQL
-- **Frontend**: React / TypeScript
+### React Email Templates
 
-**Repository**: [full-stack-fastapi-template](https://github.com/fastapi/full-stack-fastapi-template/tree/master)
+![Email templates screenshot](img/react-email.png)
 
-## Suggested Time Allocation
+### Mailpit - Local Email Testing
 
-How we believe it is doable in a 1-hour timebox:
+![Mailpit screenshot](img/mailpit.png)
 
-| Activity | Time           | Priority |
-|----------|----------------|----------|
-| Understanding the codebase | 15 min         | High |
-| Implementation (clear, maintainable code) | 25 mins | **Critical** |
-| Testing (focused, critical paths) | 10 min         | High |
-| Documentation (README updates) | 10 min         | Medium |
+### Interactive API Documentation
 
-**If running short on time:**
-- ✓ **Prioritize**: Clear, working authorization code with consistent patterns
-- ✓ **Then**: 3-5 well-chosen tests covering critical scenarios
-- ⚠ **Cut if needed**: Extra features, comprehensive test coverage, diagrams
-- ❌ **Don't cut**: Security checks, README setup instructions
+![API docs](img/docs.png)
 
-## Requirements
+## How to Use It
 
-### 1. Clone the Base Template
+Click the **Use this template** button at the top of this page to create a new repository.
 
-Clone the repository: https://github.com/fastapi/full-stack-fastapi-template/tree/master
+## Backend Development
 
-### 2. Roles and Authorization Surface
+Backend docs: [backend/README.md](./backend/README.md).
 
-#### Implement the Following Roles
+## Frontend Development
 
-| Role | Permissions |
-|------|-------------|
-| **admin** | Full access to user management and settings |
-| **manager** | Can list users and view metrics, but not change global settings |
-| **member** | Can only access their own profile and basic app features |
+Frontend docs: [frontend/README.md](./frontend/README.md).
 
-#### Protect a Small but Realistic Surface
+## Deployment
 
-- List users
-- Create user
-- View "metrics/insights" page (simple stub is acceptable)
-- View and update own profile
+FastAPI Cloud deployment: [deployment.md](./deployment.md).
 
-**Exact permission mapping is up to you.**
+Self-hosted deployment with Docker Compose: [deployment-docker-compose.md](./deployment-docker-compose.md).
 
-State it clearly in your docs and enforce it consistently in the backend and frontend.
+## Development
 
-#### Example Permission Matrix (Document Something Similar)
+General development docs: [development.md](./development.md).
 
-| Action | admin | manager | member |
-|--------|-------|---------|--------|
-| List all users | ✓ | ✓ | ✗ |
-| Create user | ✓ | ✗ | ✗ |
-| View metrics | ✓ | ✓ | ✗ |
-| Update own profile | ✓ | ✓ | ✓ |
-| Update any profile | ✓ | ✗ | ✗ |
+This includes the local FastAPI and Vite workflow, Docker Compose services, `.env` configuration, and more.
 
-### 3. Code Quality Expectations
+## Release Notes
 
-**We prioritize maintainable, readable code over clever solutions.**
- 
-- **Clear naming**: Function/variable names that explain intent without comments
-- **Single responsibility**: Small, focused functions
-- **Easy to extend**: Adding a new role shouldn't require touching 10+ files
-- **Self-documenting**: Code structure makes the authorization model obvious
+Check the file [release-notes.md](./release-notes.md).
 
-> **Key principle**: A teammate should understand your authorization model in 5 minutes by reading your code.
+## License
 
-### 4. Architecture & Documentation
-
-Document your implementation approach clearly but concisely.
-
-#### Required
-
-- [ ] **Permission matrix** in README showing which role can access what
-- [ ] **Brief explanation** (2-4 paragraphs) of your authorization approach:
-  - Where authorization checks live (middleware, dependencies, decorators?)
-  - How roles are stored and validated
-  - How frontend learns about user capabilities
-- [ ] **Inline code comments** only for non-obvious authorization logic
-
-#### Optional (Bonus Points)
-
-- [ ] **1-2 Architecture Decision Records (ADRs)** for your most critical decisions
-  - Use any simple ADR format (problem, options, decision, trade-offs)
-  - 200-400 words each
-  - Example topics: Why you chose your authorization pattern, where checks live, how the frontend handles permissions
-- [ ] **Simple diagram** showing where auth/authz checks happen
-  - Mermaid, C4-style, or hand-drawn PNG is fine
-
-**Philosophy**: We value clear thinking over formal documentation. 
-Your code should clearly explain your approach; that's usually sufficient.
-RBAC implementation, though, usually has at least a few options to implement, hence an additional README will add value.
-
-### 5. Non-Functional Requirements
-
-Demonstrate you considered real-world constraints:
-
-#### 1. Maintainability (Critical)
-
-- Keep coupling low; use consistent patterns
-- A teammate should understand your authorization logic in 5 minutes
-
-#### 2. Testability (Important)
-
-- Provide **focused backend tests** covering critical authorization paths
-
-> **Note**: Tests are required, but we prioritize **quality over quantity**. 3 well-chosen tests with clean code beat 20 tests with spaghetti code.
-
-### 3. UX Behavior
-
-- **The UI** should:
-  - Hide navigation links/buttons that the user can't access
-  - Show a friendly "Forbidden" or "Access Denied" message if navigating directly to unauthorized routes
-  - Not just fail silently or show cryptic errors
-
-### 4. Developer UX
-
-Update the README with:
-
-- **How to run locally** (setup, dependencies, database)
-- **How to seed test data** with at least one admin and one non-admin user
-- **How to run tests**
-- **Database migrations** for any schema changes (if applicable)
-
-Make it easy for us to run your solution without hunting for setup instructions.
-
-## What We Review
-
-### Primary Criteria (60%)
-
-**Code readability and maintainability**
-- ✓ Clear separation of concerns
-- ✓ Consistent authorization patterns
-- ✓ Self-documenting code structure
-- ✓ Low coupling between components
-- ✓ Easy to understand and extend
-
-**Working RBAC implementation**
-- ✓ Consistent enforcement in backend and frontend
-- ✓ No obvious security gaps or privilege escalation
-- ✓ Correct HTTP status codes and error handling
-
-### Secondary Criteria (30%)
-
-**Test coverage**
-- ✓ Focused tests on critical authorization paths
-- ✓ Both allowed and denied scenarios tested
-- ✓ Tests are clear and well-named
-
-**Setup and documentation**
-- ✓ Setup instructions work on first try
-- ✓ Clear explanation of authorization approach
-- ✓ Permission matrix documented
-
-### Nice to Have (10%)
-
-- Thoughtful UX for forbidden states
-- Observability (logging denied attempts)
-- Architecture Decision Records (ADRs)
-- Helpful diagrams
-- Extra polish
-
-> **Philosophy**: We're evaluating your ability to write production-quality code under time constraints. We'd rather hire someone who delivers clean, working code with good tests than someone who delivers everything but it's hard to maintain.
-
-## Submission
-
-**Deliverables**:
-
-- [ ] PR or repo link with commit history
-- [ ] Updated README with:
-  - Setup instructions
-  - Permission matrix
-  - Brief explanation of your approach
-- [ ] Backend tests covering critical authorization scenarios
-- [ ] Working implementation of RBAC
-- [ ] Optional: `NOTES.md` with anything you want us to know (scope cuts, trade-offs, what you'd do with more time)
-
----
-
-**Good luck!** Focus on demonstrating clear thinking and solid engineering fundamentals. We're looking for maintainable code, not perfect code.
+The Full Stack FastAPI Template is licensed under the terms of the MIT license.
