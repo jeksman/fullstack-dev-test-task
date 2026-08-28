@@ -1,0 +1,7 @@
+# Local deployment state, logs, reports, temp files, and the deployment SSH key.
+.ghost-hetzner/
+
+# Helper binaries downloaded during a run (hcloud, jq, shfmt).
+.tools/
+
+.DS_Store

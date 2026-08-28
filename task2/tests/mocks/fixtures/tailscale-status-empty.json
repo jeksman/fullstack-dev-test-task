@@ -1,0 +1,7 @@
+{
+  "BackendState": "Running",
+  "MagicDNSSuffix": "example-tailnet.ts.net",
+  "CurrentTailnet": { "Name": "example-tailnet.ts.net" },
+  "Self": { "HostName": "operator-laptop", "DNSName": "operator-laptop.example-tailnet.ts.net.", "TailscaleIPs": ["100.101.102.103"] },
+  "Peer": {}
+}

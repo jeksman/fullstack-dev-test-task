@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Mock ssh. Refuses anything that is not a Tailscale CGNAT destination, which is
+# exactly the invariant the real deployment must hold to.
+set -u
+[ -n "${GHO_MOCK_LOG:-}" ] && printf 'ssh %s\n' "$*" >>"$GHO_MOCK_LOG"
+target=""
+for a in "$@"; do
+	case "$a" in
+	*@*) target="${a#*@}" ;;
+	esac
+done
+case "$target" in
+100.*) : ;;
+"")
+	echo "mock ssh: no target" >&2
+	exit 255
+	;;
+*)
+	echo "mock ssh: refusing non-tailnet target ${target}" >&2
+	exit 255
+	;;
+esac
+case "${GHO_MOCK_SSH_USER:-ghostops}" in
+"") exit 255 ;;
+esac
+last=""
+for a in "$@"; do last="$a"; done
+case "$last" in
+'id -un') printf '%s\n' "${GHO_MOCK_SSH_USER:-ghostops}" ;;
+*SSH_CONNECTION*) printf '100.101.102.103 51234 100.87.65.43 22\n' ;;
+*) printf '' ;;
+esac
+exit "${GHO_MOCK_SSH_RC:-0}"

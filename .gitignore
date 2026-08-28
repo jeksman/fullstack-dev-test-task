@@ -8,8 +8,4 @@ blob-report/
 playwright/.cache/
 playwright/.auth/
 
-# Local agent scaffolding — not part of the submission
 .DS_Store
-.myteam/
-task2/
-conversation-agent.txt

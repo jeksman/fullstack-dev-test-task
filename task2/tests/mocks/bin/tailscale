@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Mock Tailscale CLI.
+set -u
+F="${GHO_MOCK_FIXTURES:?fixtures dir required}"
+[ -n "${GHO_MOCK_LOG:-}" ] && printf '%s\n' "$*" >>"$GHO_MOCK_LOG"
+case "${1:-}" in
+version) echo "1.102.3 (mock)" ;;
+status)
+	if [ "${GHO_MOCK_TS_EMPTY:-0}" = "1" ]; then
+		cat "${F}/tailscale-status-empty.json"
+	elif [ "${GHO_MOCK_TS_DOWN:-0}" = "1" ]; then
+		echo '{"BackendState":"Stopped","Peer":{}}'
+	else
+		cat "${F}/tailscale-status.json"
+	fi
+	;;
+ip) echo "100.87.65.43" ;;
+ping)
+	[ "${GHO_MOCK_TS_PING_FAIL:-0}" = "1" ] && exit 1
+	echo "pong from mock"
+	;;
+up) echo "up (mock)" ;;
+*) exit 1 ;;
+esac

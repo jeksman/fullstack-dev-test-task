@@ -1,0 +1,19 @@
+{
+  "id": 55512345,
+  "name": "gho-ghost-blog",
+  "status": "running",
+  "labels": {
+    "managed-by": "ghost-hetzner-oneclick",
+    "deployment-id": "ghost-blog-deadbeef",
+    "application": "ghost",
+    "environment": "production"
+  },
+  "image": { "name": "ubuntu-24.04", "architecture": "x86" },
+  "server_type": { "name": "cx23", "architecture": "x86", "memory": 4 },
+  "backup_window": null,
+  "public_net": {
+    "ipv4": { "ip": "203.0.113.42" },
+    "ipv6": { "ip": "2001:db8:1234:5678::/64" },
+    "firewalls": [ { "id": 9911, "status": "applied" } ]
+  }
+}

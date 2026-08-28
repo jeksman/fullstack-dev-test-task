@@ -1,0 +1,430 @@
+
+════════════════════════════════════════════════════════════════
+myteam · 2026-08-28 18:00 · каталог: /Users/johndoe/Desktop/PERSONAL/test_tasks/Fullstack-Dev-Test-Task
+ЗАДАЧА: -n5 Fullstack-Dev-Test-Task
+This is a task to test potential candidate skills in Python + SQL + TypeScript.
+
+Assignment: Add Role-Aware Access + Architecture Decisions + Run the app
+Timebox: Aim for up to 1 hour. If you cut scope, say what you cut and why.
+Table of Contents
+Goal
+Base Template
+Suggested Time Allocation
+Requirements
+1. Clone the Base Template
+2. Roles and Authorization Surface
+3. Code Quality Expectations
+4. Architecture & Documentation
+5. Non-Functional Requirements
+6. UX Behavior
+7. Developer UX
+Constraints
+What We Review
+Submission
+Goal
+Add role-based access control (RBAC) to the existing Full-Stack FastAPI Template so that only authorized users can access sensitive endpoints and UI sections.
+
+We prioritize clean, maintainable code over comprehensive test coverage or extensive documentation.
+
+You may reuse any libraries already in the template.
+
+Note: RBAC can be implemented with simple role checks or a small policy layer. Keep scope tight. Favor clarity over cleverness.
+
+Base Template
+Tech Stack:
+
+Backend: FastAPI / SQLModel / PostgreSQL
+Frontend: React / TypeScript
+Repository: full-stack-fastapi-template
+
+Suggested Time Allocation
+How we believe it is doable in a 1-hour timebox:
+
+Activity	Time	Priority
+Understanding the codebase	15 min	High
+Implementation (clear, maintainable code)	25 mins	Critical
+Testing (focused, critical paths)	10 min	High
+Documentation (README updates)	10 min	Medium
+If running short on time:
+
+✓ Prioritize: Clear, working authorization code with consistent patterns
+✓ Then: 3-5 well-chosen tests covering critical scenarios
+⚠ Cut if needed: Extra features, comprehensive test coverage, diagrams
+❌ Don't cut: Security checks, README setup instructions
+Requirements
+1. Clone the Base Template
+Clone the repository: https://github.com/fastapi/full-stack-fastapi-template/tree/master
+
+2. Roles and Authorization Surface
+Implement the Following Roles
+Role	Permissions
+admin	Full access to user management and settings
+manager	Can list users and view metrics, but not change global settings
+member	Can only access their own profile and basic app features
+Protect a Small but Realistic Surface
+List users
+Create user
+View metrics/insights page (simple stub is acceptable)
+View and update own profile
+Exact permission mapping is up to you.
+
+State it clearly in your docs and enforce it consistently in the backend and frontend.
+
+Example Permission Matrix (Document Something Similar)
+Action	admin	manager	member
+List all users	✓	✓	✗
+Create user	✓	✗	✗
+View metrics	✓	✓	✗
+Update own profile	✓	✓	✓
+Update any profile	✓	✗	✗
+3. Code Quality Expectations
+We prioritize maintainable, readable code over clever solutions.
+
+Clear naming: Function/variable names that explain intent without comments
+Single responsibility: Small, focused functions
+Easy to extend: Adding a new role shouldn't require touching 10+ files
+Self-documenting: Code structure makes the authorization model obvious
+Key principle: A teammate should understand your authorization model in 5 minutes by reading your code.
+
+4. Architecture & Documentation
+Document your implementation approach clearly but concisely.
+
+Required
+ Permission matrix in README showing which role can access what
+ Brief explanation (2-4 paragraphs) of your authorization approach:
+Where authorization checks live (middleware, dependencies, decorators?)
+How roles are stored and validated
+How frontend learns about user capabilities
+ Inline code comments only for non-obvious authorization logic
+Optional (Bonus Points)
+ 1-2 Architecture Decision Records (ADRs) for your most critical decisions
+Use any simple ADR format (problem, options, decision, trade-offs)
+200-400 words each
+Example topics: Why you chose your authorization pattern, where checks live, how the frontend handles permissions
+ Simple diagram showing where auth/authz checks happen
+Mermaid, C4-style, or hand-drawn PNG is fine
+Philosophy: We value clear thinking over formal documentation. Your code should clearly explain your approach; that's usually sufficient. RBAC implementation, though, usually has at least a few options to implement, hence an additional README will add value.
+
+5. Non-Functional Requirements
+Demonstrate you considered real-world constraints:
+
+1. Maintainability (Critical)
+Keep coupling low; use consistent patterns
+A teammate should understand your authorization logic in 5 minutes
+2. Testability (Important)
+Provide focused backend tests covering critical authorization paths
+Note: Tests are required, but we prioritize quality over quantity. 3 well-chosen tests with clean code beat 20 tests with spaghetti code.
+
+3. UX Behavior
+The UI should:
+Hide navigation links/buttons that the user can't access
+Show a friendly Forbidden or Access Denied message if navigating directly to unauthorized routes
+Not just fail silently or show cryptic errors
+4. Developer UX
+Update the README with:
+
+How to run locally (setup, dependencies, database)
+How to seed test data with at least one admin and one non-admin user
+How to run tests
+Database migrations for any schema changes (if applicable)
+Make it easy for us to run your solution without hunting for setup instructions.
+
+What We Review
+Primary Criteria (60%)
+Code readability and maintainability
+
+✓ Clear separation of concerns
+✓ Consistent authorization patterns
+✓ Self-documenting code structure
+✓ Low coupling between components
+✓ Easy to understand and extend
+Working RBAC implementation
+
+✓ Consistent enforcement in backend and frontend
+✓ No obvious security gaps or privilege escalation
+✓ Correct HTTP status codes and error handling
+Secondary Criteria (30%)
+Test coverage
+
+✓ Focused tests on critical authorization paths
+✓ Both allowed and denied scenarios tested
+✓ Tests are clear and well-named
+Setup and documentation
+
+✓ Setup instructions work on first try
+✓ Clear explanation of authorization approach
+✓ Permission matrix documented
+Nice to Have (10%)
+Thoughtful UX for forbidden states
+Observability (logging denied attempts)
+Architecture Decision Records (ADRs)
+Helpful diagrams
+Extra polish
+Philosophy: We're evaluating your ability to write production-quality code under time constraints. We'd rather hire someone who delivers clean, working code with good tests than someone who delivers everything but it's hard to maintain.
+
+Submission
+Deliverables:
+
+ PR or repo link with commit history
+ Updated README with:
+Setup instructions
+Permission matrix
+Brief explanation of your approach
+ Backend tests covering critical authorization scenarios
+ Working implementation of RBAC
+ Optional: NOTES.md with anything you want us to know (scope cuts, trade-offs, what you'd do with more time)
+after verify, test and run - commit & push it to https://github.com/jeksman/fullstack-dev-test-task, use guidelines inside the folder you do it
+════════════════════════════════════════════════════════════════
+
+───── план · claude ─────
+Окружение проверил сам: Docker.app установлен, но **не запущен**; `uv`, `bun`, локального Postgres нет; Python 3.14.7 есть; клон шаблона из прошлой сессии исчез (`/tmp` подчищен). `origin` = `evios/...`, целевой репозиторий — другой.
+
+## Порядок работ
+
+**0. Окружение — блокер, делать первым.** `open -a Docker`, `brew install uv bun`. Для pytest не нужен весь стек: `docker compose up -d db` (один Postgres) — этого хватает, образы backend/frontend не собираем. Если Docker не поднимется, вся верификация схлопывается до юнит-тестов матрицы + AST-теста, и это пишется в `NOTES.md` прямым текстом, а не замалчивается.
+
+**1. Импорт шаблона.** Клонировать `full-stack-fastapi-template` на фиксированный коммит, разложить поверх `main`. Решения по файлам, которые надо принять сразу:
+- Текущий `README.md` — это **условие задачи**, а не документация проекта. Переносим в `TASK.md`, `README.md` пишем свой (матрица, запуск, seed, тесты).
+- `.myteam/`, `conversation-agent.txt`, `task2/`, `.DS_Store` в сдаточный репозиторий не едут — `.gitignore`. `chat-history/` и `CLAUDE.md` остаются.
+
+**2. L1 → L2 → L3, ровно по `CLAUDE.md`.**
+`core/domain/rbac.py` (`Role`, `Permission`, `ROLE_PERMISSIONS`), `domain/user.py`, `domain/exceptions.py` → `ports/user_repository.py` → `use_cases/authorization_policy.py` + три юзкейса (`ListUsers`, `CreateUser`, `UpdateOwnProfile`) → `infrastructure/repositories/sqlmodel_user_repository.py`, `infrastructure/mappers.py`.
+
+**3. БД.** Колонка `role` в `UserBase` (дефолт `member`), Alembic-миграция с backfill `is_superuser=true → admin`. `is_superuser` остаётся в БД и в `UserPublic` (на нём держится апстримный тестовый сьют), но **в авторизации не участвует нигде** — синхронизируется из `role` только в `crud`.
+
+**4. Поверхность.** `deps.py` — composition root + фабрика `require(Permission)` (403 + лог отказа). Гейты в `users.py`, `login.py`, `items.py`, `utils.py`; новые `GET /users/me/permissions` и `GET /metrics/summary` (три числа считает контроллер — порт под заглушку не выдумываем). `init_db`: первый суперюзер получает `role=admin`.
+
+**5. Фронт.** `generate-client` → `usePermissions()`/`can()` → `<Forbidden/>`, гейтинг сайдбара и роутов, select роли в `AddUser`/`EditUser`, чистка мёртвой ветки в `settings.tsx`. Роут `/admin` не переименовываем — тянет `routeTree.gen.ts` и ничего не даёт.
+
+**6. Тесты.** Матрица как чистая функция; один параметризованный тест `(роль, метод, путь, ожидаемый статус)` вместо пяти отдельных — покрытие allowed/denied полное, кода меньше; отдельно антиэскалация через `PATCH /users/me`; `test_architecture.py` (AST-обход ядра).
+
+**7. Сдача.** README, один ADR («почему policy-слой, а не декораторы на роутах»), `NOTES.md` со срезанным, `git remote add submission`, push.
+
+## Как проверять
+
+`rg is_superuser backend/app` — попадания допустимы только в `models.py` и `crud.py`; всё остальное — недочищенная ветка авторизации. Плюс `bash scripts/test.sh` (или `uv run pytest` при поднятом `db`), `alembic upgrade head` на чистой базе, и ручной логин тремя ролями, если стек поднялся.
+
+## Главный риск
+
+Не «где-то остался `is_superuser`» — это ловится одним grep'ом. Риск в том, что **пункт задания «verify, test and run» не проверяем**: Docker выключен, `uv`/`bun` не стоят, локального Postgres нет. Если хоть одно не поднимется — код может быть правильным, но доказать это нечем, и в сдаче будет «должно работать» вместо «работает». Поэтому шаг 0 идёт до любого кода, а не после.
+
+Срезано: второй ADR, диаграмма, E2E, переименование `/admin`. Не срезано: миграция, security-гейты, инструкции запуска.
+
+───── план · codex ─────
+Отвечу как архитектор FastAPI/React-систем и специалист по прикладной безопасности, лауреат Ukrainian IT Awards в номинации Software Architecture.
+**TL;DR**: Импортировать шаблон `486f054`, затем провести RBAC вертикально: доменная матрица → БД и миграция → use cases и адаптеры → API → frontend → тесты → документация и запуск.
+1. **Подготовить основу**
+   - Перенести шаблон в корень, сохранив `CLAUDE.md`, историю и текущую постановку.
+   - Зафиксировать импорт шаблона отдельным коммитом для прозрачной истории.
+2. **Создать чистое RBAC-ядро**
+   - `backend/app/core/domain/rbac.py`: `Role`, `Permission`, `ROLE_PERMISSIONS`.
+   - `backend/app/core/domain/user.py`: независимая от SQLModel сущность пользователя.
+   - `backend/app/core/use_cases/authorization.py`: `AuthorizationPolicy`, доменный `AccessDenied`.
+   - Новая роль добавляется только в `ROLE_PERMISSIONS`.
+3. **Провести Clean Architecture для users**
+   - `core/ports/user_repository.py`.
+   - `core/use_cases/list_users.py`, `create_user.py`, `update_own_profile.py`.
+   - `infrastructure/repositories/sqlmodel_user_repository.py`.
+   - `infrastructure/mappers.py`.
+   - `api/deps.py` оставить composition root: сборка use cases и `require(Permission)` с `403` и журналированием отказа.
+4. **Изменить хранение**
+   - `backend/app/models.py`: колонка `role`, default `member`, валидация допустимых значений.
+   - Новая Alembic-миграция: добавить колонку и выполнить backfill `is_superuser=True → admin`.
+   - `is_superuser` оставить только для совместимости, вычислять из `role`; при принятии решений о доступе его не использовать.
+   - `core/db.py` и отдельный seed-сценарий: admin, manager, member.
+5. **Закрыть backend-поверхность**
+   - `api/routes/users.py`:
+     - list — admin/manager;
+     - create, update/delete любого пользователя — admin;
+     - own profile — все роли;
+     - `/users/me/permissions` — права текущего пользователя.
+   - Новый `api/routes/metrics.py` и подключение в `api/main.py`: admin/manager.
+   - Перевести оставшиеся проверки в `items.py`, `login.py`, `utils.py` с `is_superuser` на permissions, иначе останется второй механизм авторизации.
+   - Явно исключить `role` и `is_superuser` из self-update/signup.
+6. **Синхронизировать frontend**
+   - Перегенерировать `frontend/src/client`.
+   - Добавить `usePermissions`/`can`.
+   - `AppSidebar.tsx` и `Main.tsx`: скрывать недоступные разделы.
+   - `routes/_layout/admin.tsx` и новый `metrics.tsx`: показывать отдельный `Forbidden`, а не молча перенаправлять.
+   - `AddUser.tsx`, `EditUser.tsx`, `columns.tsx`: заменить superuser-checkbox на роль; кнопки create/edit проверяют отдельные permissions.
+   - Не переименовывать `/admin`: лишний churn без функциональной пользы.
+7. **Проверить**
+   - `test_architecture.py`: AST-запрет импортов фреймворков в ядре.
+   - Юнит-тест матрицы и use cases без БД.
+   - Параметризованный API-тест всех разрешённых/запрещённых сочетаний.
+   - Отдельные тесты self-update, signup и запрета повышения роли.
+   - `rg is_superuser backend/app frontend/src`: допустимы только legacy-хранение/представление, но не условия доступа.
+   - Запустить миграции, backend tests, frontend lint/typecheck/build.
+   - Поднять Docker Compose и вручную проверить admin/manager/member, прямой переход на запрещённые маршруты и metrics API.
+8. **Сдача**
+   - README: матрица, архитектурный подход, seed, миграции, запуск и тесты.
+   - Один ADR о централизованной permission-модели.
+   - `NOTES.md`: срезаны второй ADR, диаграмма и Playwright E2E.
+   - После зелёных проверок — отдельные логичные коммиты и push в `jeksman/fullstack-dev-test-task`.
+**Главный риск**: рассинхронизация `role` и legacy-поля `is_superuser`, особенно в старых backend-ветках и сгенерированном клиенте. Контроль: авторизация читает исключительно `role`/permissions, legacy-флаг нормализуется централизованно, а остаточные проверки ловятся поиском и тестами.
+Файлы не изменялись.
+
+───── итерация 1 · реализует: claude ─────
+Готово, запушено в `jeksman/fullstack-dev-test-task` (`e4d4d9a`).
+
+## Что сделано
+
+**Модель прав** — `backend/app/core/domain/rbac.py`: `Role`, `Permission`, `ROLE_PERMISSIONS`. Эндпоинты требуют *разрешения*, не роли, поэтому добавление роли — одна строка. Решение принимает единственный класс `AuthorizationPolicy` (`core/use_cases/`), он же пишет warning-лог отказа (кто, какое право, какой ресурс).
+
+**Слои по `CLAUDE.md`** — порт `ports/user_repository.py`, три use case, `infrastructure/` с репозиторием и мапперами, `deps.py` как composition root с фабрикой `require(Permission)`. `test_architecture.py` обходит AST ядра и падает на импорте фреймворка — 12 модулей под контролем.
+
+**Хранение** — колонка `role`, миграция `b7c31d9f4a20` с backfill `is_superuser=true → admin`. Флаг остался в схеме, но выводится из роли и нигде не читается для решений: `items.py`, `login.py`, `utils.py` переведены на permissions, чтобы не осталось второго механизма авторизации.
+
+**Фронт** — `usePermissions()` спрашивает права у бэкенда (`GET /users/me/permissions`), а не хардкодит роли в TS; `RequirePermission` показывает Access denied вместо молчаливого редиректа; страница `/metrics`, выбор роли вместо чекбокса superuser.
+
+## Решения, которые стоит знать
+
+- **Единый текст 403.** Сначала отдавал клиенту `Role 'member' lacks permission 'user:delete_any'` — получилось два разных сообщения на одну ситуацию и засветилась внутренняя таксономия прав. Детали ушли в лог, клиенту одна формулировка.
+- **Четыре апстримных теста переведены на `role=admin`.** Они утверждали старый источник истины (`is_superuser=True` → права). Это осознанная смена поведения, а не подгонка теста под регрессию.
+- **`VARCHAR(20)`, а не PG `ENUM`.** Нативный enum дал бы валидацию в БД, но добавление роли потребовало бы миграции — что противоречит «одной строке в `ROLE_PERMISSIONS`».
+
+## Проверено, а не заявлено
+
+111 pytest, `tsc` + сборка, `alembic upgrade head`, полный `docker compose up --build` + seed, живые запросы тремя ролями — матрица совпала, эскалация через `PATCH /users/me` роль не меняет, отказы видны в логе контейнера.
+
+Playwright я сначала числил в срезанном, но написал — и **первая версия дала ложный проход**: `toHaveCount(0)` для кнопки Add User проходил на странице, которая вообще не отрендерилась (скриншот показал пустоту). Теперь каждый тест сначала утверждает наличие, потом отсутствие. 3 теста, зелёные; в `NOTES.md` это описано.
+
+Стек оставил поднятым на `localhost:8000`. Не срезано ничего из обязательного; срезаны второй ADR и resource-scoped права — с обоснованием в `NOTES.md`.
+
+───── итерация 1 · ревью: codex ─────
+**TL;DR**: Реализация качественная и работоспособная. Найденные UX/README-дефекты исправлены и запушены коммитом `7988b1d`.
+Согласен с:
+- централизованной permission-моделью и backend enforcement;
+- миграцией/backfill ролей и защитой от self-escalation;
+- capability-driven frontend и понятным Forbidden-состоянием;
+- тестами и документацией.
+Не согласился с исходным UX: manager видел Edit/Delete без соответствующих прав. Исправил гейтинг и добавил E2E-регрессию. Также заменил неработающую команду `bunx` на `bun x`.
+Проверено:
+- `111 passed` backend;
+- frontend lint и production build — успешно;
+- Alembic — `head`, model drift отсутствует;
+- Playwright — `4 passed`;
+- Docker backend healthy на `localhost:8000`;
+- push подтверждён: `submission/main = 7988b1d`.
+ВЕРДИКТ: ГОТОВО
+diff --git a/README.md b/README.md
+index 9f62d403150da993f920e1f20ae61eaa281c3e66..b8147ed8f655a8b57e88c3d09df5a96758271b85
+--- a/README.md
++++ b/README.md
+@@ -204,8 +204,8 @@
+ 
+ ```bash
+ cd frontend
+-bunx playwright install chromium
+-PLAYWRIGHT_BASE_URL=http://localhost:8000 bunx playwright test tests/rbac.spec.ts
++bun x playwright install chromium
++PLAYWRIGHT_BASE_URL=http://localhost:8000 bun x playwright test tests/rbac.spec.ts
+ ```
+ 
+ `frontend/tests/rbac.spec.ts` asserts the hidden nav entries, the **Access
+diff --git a/chat-history/2026-08-28.md b/chat-history/2026-08-28.md
+index 01f85c79f9c8df33b0b99f6272ee0ea4cb17cc34..0ff4aaa03fe3c9fd3819aaefbcee4221b77e8ad6
+--- a/chat-history/2026-08-28.md
++++ b/chat-history/2026-08-28.md
+@@ -30,3 +30,10 @@
+ - Проверено: 111 тестов pytest, `bun run lint` + сборка с `tsc`, `alembic upgrade head`,
+   живые HTTP-запросы тремя ролями на docker-стеке (матрица совпала), отказы видны в логах.
+ - Документация: README (матрица, подход, запуск, seed, тесты), ADR 0001, NOTES.md.
++
++## Независимый ревью и точечная правка
++- Просьба: проверить фактический diff, запустить приложение и тесты, исправлять только явные точечные ошибки.
++- Найдено и исправлено: manager видел меню Edit/Delete, хотя backend запрещал обе операции; меню и отдельные действия теперь гейтятся `user:update_any` / `user:delete_any`.
++- Добавлена Playwright-регрессия: у manager меню действий отсутствует, у admin доступно; кнопка получила доступный `aria-label`.
++- README: команды `bunx playwright` заменены на переносимый синтаксис `bun x playwright`.
++- Проверено: 111 pytest; frontend lint и production build; Alembic на `b7c31d9f4a20 (head)`; Docker backend отвечает health-check; после повторного seed Playwright setup + три RBAC-сценария — 4 passed.
+diff --git a/frontend/src/components/Admin/UserActionsMenu.tsx b/frontend/src/components/Admin/UserActionsMenu.tsx
+index 01f71cbb7ad092d09d909d21c23a94aca2129e59..0cf2e190c57f6f68f12523ded71dbdce3fcf6d29
+--- a/frontend/src/components/Admin/UserActionsMenu.tsx
++++ b/frontend/src/components/Admin/UserActionsMenu.tsx
+@@ -9,6 +9,7 @@
+   DropdownMenuTrigger,
+ } from "@/components/ui/dropdown-menu"
+ import useAuth from "@/hooks/useAuth"
++import usePermissions from "@/hooks/usePermissions"
+ import DeleteUser from "./DeleteUser"
+ import EditUser from "./EditUser"
+ 
+@@ -19,21 +20,33 @@
+ export const UserActionsMenu = ({ user }: UserActionsMenuProps) => {
+   const [open, setOpen] = useState(false)
+   const { user: currentUser } = useAuth()
++  const { can } = usePermissions()
+ 
+-  if (user.id === currentUser?.id) {
++  if (
++    user.id === currentUser?.id ||
++    (!can("user:update_any") && !can("user:delete_any"))
++  ) {
+     return null
+   }
+ 
+   return (
+     <DropdownMenu open={open} onOpenChange={setOpen}>
+       <DropdownMenuTrigger asChild>
+-        <Button variant="ghost" size="icon">
++        <Button
++          variant="ghost"
++          size="icon"
++          aria-label={`User actions for ${user.email}`}
++        >
+           <EllipsisVertical />
+         </Button>
+       </DropdownMenuTrigger>
+       <DropdownMenuContent align="end">
+-        <EditUser user={user} onSuccess={() => setOpen(false)} />
+-        <DeleteUser id={user.id} onSuccess={() => setOpen(false)} />
++        {can("user:update_any") && (
++          <EditUser user={user} onSuccess={() => setOpen(false)} />
++        )}
++        {can("user:delete_any") && (
++          <DeleteUser id={user.id} onSuccess={() => setOpen(false)} />
++        )}
+       </DropdownMenuContent>
+     </DropdownMenu>
+   )
+diff --git a/frontend/tests/rbac.spec.ts b/frontend/tests/rbac.spec.ts
+index 9c170da6c3f531216b23d8cecefb914f1f02e021..dd6edd8b5e7885c583caaa9421870592d1638c65
+--- a/frontend/tests/rbac.spec.ts
++++ b/frontend/tests/rbac.spec.ts
+@@ -44,6 +44,9 @@
+   // on a page that failed to load at all.
+   await expect(page.getByText("manager@example.com")).toBeVisible()
+   await expect(page.getByRole("button", { name: "Add User" })).toHaveCount(0)
++  await expect(
++    page.getByRole("button", { name: /User actions for/ }),
++  ).toHaveCount(0)
+ 
+   await page.goto("/metrics")
+   await expect(page.getByText("Total users")).toBeVisible()
+@@ -55,6 +58,9 @@
+   await page.goto("/admin")
+   await expect(page.getByText("manager@example.com")).toBeVisible()
+   await expect(page.getByRole("button", { name: "Add User" })).toBeVisible()
++  await expect(
++    page.getByRole("button", { name: /User actions for/ }).first(),
++  ).toBeVisible()
+ 
+   await page.goto("/metrics")
+   await expect(page.getByText("Total users")).toBeVisible()
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+deleted file mode 100644
+index 9b60ae1782d6de40a88f604fe40efd8a127d3418..0000000000000000000000000000000000000000
+--- a/pnpm-lock.yaml
++++ /dev/null
+@@ -1,9 +0,0 @@
+-lockfileVersion: '9.0'
+-
+-settings:
+-  autoInstallPeers: true
+-  excludeLinksFromLockfile: false
+-
+-importers:
+-
+-  .: {}
+
+РЕЗУЛЬТАТ: команда сошлась на «готово» после итерации 1.

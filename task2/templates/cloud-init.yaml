@@ -1,0 +1,159 @@
+#cloud-config
+# ghost-hetzner-oneclick — Stage 1 bootstrap.
+#
+# This file does the minimum required to obtain private administrative access
+# and nothing else. Ghost, MySQL, Nginx and TLS are installed in stage 2, over
+# the Tailscale tunnel, by remote/install-ghost.sh.
+#
+# deploy.sh renders five placeholders into this file before it is uploaded:
+# the admin user name, the deployment public key, the one-time Tailscale auth
+# key, the tailnet hostname and the deployment id.
+
+hostname: __TS_HOSTNAME__
+fqdn: __TS_HOSTNAME__
+preserve_hostname: false
+
+# Root is locked and password SSH is off before sshd is ever reachable.
+disable_root: true
+ssh_pwauth: false
+
+users:
+  - name: __ADMIN_USER__
+    gecos: ghost-hetzner-oneclick deployment operator
+    shell: /bin/bash
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "__SSH_PUBKEY__"
+
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - gnupg
+  - jq
+  - ufw
+
+write_files:
+  # Loaded before 50-cloud-init.conf: in OpenSSH the first value wins, so this
+  # drop-in is authoritative for every hardening directive it names.
+  - path: /etc/ssh/sshd_config.d/10-ghost-hetzner.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # ghost-hetzner-oneclick SSH hardening
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      PermitEmptyPasswords no
+      AuthenticationMethods publickey
+      PubkeyAuthentication yes
+      AllowUsers __ADMIN_USER__
+      X11Forwarding no
+      AllowAgentForwarding no
+      MaxAuthTries 3
+      LoginGraceTime 20
+      ClientAliveInterval 60
+      ClientAliveCountMax 3
+
+  - path: /root/.gho-authkey
+    owner: root:root
+    permissions: '0600'
+    content: |
+      __TS_AUTHKEY__
+
+  - path: /usr/local/sbin/gho-bootstrap.sh
+    owner: root:root
+    permissions: '0700'
+    content: |
+      #!/usr/bin/env bash
+      # Stage 1 bootstrap: host firewall, Tailscale join, key destruction.
+      set -Eeuo pipefail
+
+      STATUS_FILE=/var/lib/gho-bootstrap.json
+      ADMIN_USER='__ADMIN_USER__'
+      TS_HOSTNAME='__TS_HOSTNAME__'
+      DEPLOYMENT_ID='__DEPLOYMENT_ID__'
+      RAW_KEY=/root/.gho-authkey
+      KEY_FILE=/run/gho-authkey
+
+      status() {
+        printf '{"deployment_id":"%s","stage":"%s","ok":%s,"tailscale_ip":"%s","ts":"%s"}\n' \
+          "$DEPLOYMENT_ID" "$1" "$2" "${3:-}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$STATUS_FILE"
+        chmod 0644 "$STATUS_FILE"
+      }
+      trap 'status failed false' ERR
+
+      status starting true
+
+      # --- host firewall: deny by default, SSH only on the tunnel ------------
+      ufw --force disable >/dev/null 2>&1 || true
+      ufw default deny incoming
+      ufw default allow outgoing
+      ufw allow 80/tcp comment 'Ghost HTTP'
+      ufw allow 443/tcp comment 'Ghost HTTPS'
+      ufw allow in on tailscale0 to any port 22 proto tcp comment 'SSH over Tailscale only'
+      ufw --force enable
+      status firewall true
+
+      # --- sshd hardening takes effect ---------------------------------------
+      sshd -t
+      systemctl restart ssh || systemctl restart sshd
+
+      # --- Tailscale ---------------------------------------------------------
+      curl -fsSL --proto '=https' --tlsv1.2 https://tailscale.com/install.sh | sh
+      systemctl enable --now tailscaled
+
+      # Strip any trailing newline the YAML block scalar added, and keep the
+      # working copy on tmpfs so it never touches persistent storage.
+      tr -d ' \t\r\n' <"$RAW_KEY" >"$KEY_FILE"
+      chmod 0600 "$KEY_FILE"
+
+      # The key is handed over as a file reference, so it is not visible in the
+      # process table of any other user on the machine.
+      tailscale up \
+        --auth-key="file:${KEY_FILE}" \
+        --hostname="$TS_HOSTNAME" \
+        --accept-dns=false \
+        --ssh=false
+
+      for _ in $(seq 1 60); do
+        TS_IP="$(tailscale ip -4 2>/dev/null | head -1 || true)"
+        [ -n "${TS_IP:-}" ] && break
+        sleep 2
+      done
+      [ -n "${TS_IP:-}" ] || { status tailscale-no-ip false; exit 1; }
+      status tailscale true "$TS_IP"
+
+      # --- destroy every copy of the auth key --------------------------------
+      # printf is a bash builtin, so the key never becomes a process argument.
+      REDACT_SCRIPT=/run/gho-redact.sed
+      printf 's|%s|REDACTED-BY-GHO-BOOTSTRAP|g\n' "$(cat "$KEY_FILE")" >"$REDACT_SCRIPT"
+      chmod 0600 "$REDACT_SCRIPT"
+      shred -u "$KEY_FILE" 2>/dev/null || rm -f "$KEY_FILE"
+      shred -u "$RAW_KEY" 2>/dev/null || rm -f "$RAW_KEY"
+      for f in /var/lib/cloud/instance/user-data.txt \
+               /var/lib/cloud/instance/user-data.txt.i \
+               /var/lib/cloud/instance/cloud-config.txt \
+               /var/lib/cloud/instances/*/user-data.txt \
+               /var/lib/cloud/instances/*/user-data.txt.i \
+               /var/lib/cloud/instances/*/cloud-config.txt \
+               /run/cloud-init/instance-data.json \
+               /run/cloud-init/instance-data-sensitive.json; do
+        [ -f "$f" ] || continue
+        sed -i -f "$REDACT_SCRIPT" "$f" 2>/dev/null || true
+      done
+      shred -u "$REDACT_SCRIPT" 2>/dev/null || rm -f "$REDACT_SCRIPT"
+      # The Hetzner metadata service still serves the original user-data to the
+      # instance itself; that is why the key must be one-time and ephemeral.
+      # See SECURITY.md, "cloud-init secret limitations".
+
+      status ready true "$TS_IP"
+      touch /var/lib/gho-bootstrap.done
+
+runcmd:
+  - [ bash, /usr/local/sbin/gho-bootstrap.sh ]
+
+final_message: "ghost-hetzner-oneclick stage 1 finished after $UPTIME seconds"

@@ -1,0 +1,6 @@
+[
+  {"id":1,"name":"fsn1","city":"Falkenstein","country":"DE","network_zone":"eu-central"},
+  {"id":2,"name":"nbg1","city":"Nuremberg","country":"DE","network_zone":"eu-central"},
+  {"id":3,"name":"hel1","city":"Helsinki","country":"FI","network_zone":"eu-central"},
+  {"id":4,"name":"ash","city":"Ashburn, VA","country":"US","network_zone":"us-east"}
+]

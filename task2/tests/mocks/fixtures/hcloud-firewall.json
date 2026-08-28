@@ -1,0 +1,16 @@
+{
+  "id": 9911,
+  "name": "gho-ghost-blog-fw",
+  "labels": {
+    "managed-by": "ghost-hetzner-oneclick",
+    "deployment-id": "ghost-blog-deadbeef",
+    "application": "ghost",
+    "environment": "production"
+  },
+  "rules": [
+    {"direction":"in","protocol":"tcp","port":"80","source_ips":["0.0.0.0/0","::/0"],"description":"HTTP"},
+    {"direction":"in","protocol":"tcp","port":"443","source_ips":["0.0.0.0/0","::/0"],"description":"HTTPS"},
+    {"direction":"in","protocol":"icmp","source_ips":["0.0.0.0/0","::/0"],"description":"ICMP"}
+  ],
+  "applied_to": [ { "type": "server", "server": { "id": 55512345 } } ]
+}

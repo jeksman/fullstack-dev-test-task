@@ -8,6 +8,10 @@ The original template README is kept as [TEMPLATE_README.md](TEMPLATE_README.md)
 the assignment brief is [TASK.md](TASK.md). Scope cuts and trade-offs are in
 [NOTES.md](NOTES.md), and the reasoning behind the main design choice is in
 [docs/adr/0001-policy-layer-over-route-decorators.md](docs/adr/0001-policy-layer-over-route-decorators.md).
+How that decision was argued out — the disagreements between the two agents that
+reviewed the plan, and which side each was settled on — is in
+[docs/agent-discussion.md](docs/agent-discussion.md), with the raw logs in
+[`.myteam/`](.myteam).
 
 ## Permission matrix
 

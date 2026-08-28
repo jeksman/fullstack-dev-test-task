@@ -1,0 +1,5 @@
+[
+  {"id":1,"name":"ubuntu-24.04","type":"system","architecture":"x86","os_flavor":"ubuntu"},
+  {"id":2,"name":"ubuntu-22.04","type":"system","architecture":"x86","os_flavor":"ubuntu"},
+  {"id":3,"name":"debian-12","type":"system","architecture":"x86","os_flavor":"debian"}
+]

@@ -1,0 +1,13 @@
+[
+  {"id":1,"name":"cx22","cores":2,"memory":4,"disk":40,"architecture":"x86","cpu_type":"shared","deprecation":null,
+   "prices":[{"location":"nbg1","price_monthly":{"gross":"4.5100000000"}}]},
+  {"id":2,"name":"cx23","cores":2,"memory":4,"disk":40,"architecture":"x86","cpu_type":"shared","deprecation":null,
+   "prices":[{"location":"nbg1","price_monthly":{"gross":"4.9000000000"}}]},
+  {"id":3,"name":"cax11","cores":2,"memory":4,"disk":40,"architecture":"arm","cpu_type":"shared","deprecation":null,
+   "prices":[{"location":"nbg1","price_monthly":{"gross":"3.9500000000"}}]},
+  {"id":4,"name":"cx11","cores":1,"memory":2,"disk":20,"architecture":"x86","cpu_type":"shared",
+   "deprecation":{"announced":"2024-07-01T00:00:00Z"},
+   "prices":[{"location":"nbg1","price_monthly":{"gross":"3.2900000000"}}]},
+  {"id":5,"name":"cpx11","cores":2,"memory":2,"disk":40,"architecture":"x86","cpu_type":"shared","deprecation":null,
+   "prices":[{"location":"nbg1","price_monthly":{"gross":"4.3500000000"}}]}
+]

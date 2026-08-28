@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Mock nc: GHO_MOCK_OPEN_PORTS is a space separated list of "host:port".
+set -u
+[ -n "${GHO_MOCK_LOG:-}" ] && printf 'nc %s\n' "$*" >>"$GHO_MOCK_LOG"
+host=""
+port=""
+while [ $# -gt 0 ]; do
+	case "$1" in
+	-w | -G | -X | -x | -p | -s | -q) shift 2 ;;
+	-*) shift ;;
+	*)
+		if [ -z "$host" ]; then host="$1"; else port="$1"; fi
+		shift
+		;;
+	esac
+done
+for spec in ${GHO_MOCK_OPEN_PORTS:-}; do
+	[ "$spec" = "${host}:${port}" ] && exit 0
+done
+exit 1

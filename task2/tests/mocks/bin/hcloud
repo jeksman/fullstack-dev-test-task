@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Mock hcloud CLI. Serves fixtures; records every invocation so tests can assert
+# on the arguments the project actually passes.
+set -u
+F="${GHO_MOCK_FIXTURES:?fixtures dir required}"
+[ -n "${GHO_MOCK_LOG:-}" ] && printf '%s\n' "$*" >>"$GHO_MOCK_LOG"
+
+case "${GHO_MOCK_HCLOUD_FAIL:-}" in
+auth) exit 1 ;;
+esac
+
+sub="${1:-}"
+verb="${2:-}"
+case "${sub}:${verb}" in
+version:*) echo "hcloud v1.67.0 (mock)" ;;
+server:list) cat "${F}/hcloud-servers-list.json" 2>/dev/null || echo '[]' ;;
+location:list) cat "${F}/hcloud-locations.json" ;;
+server-type:list) cat "${F}/hcloud-server-types.json" ;;
+image:list) cat "${F}/hcloud-images.json" ;;
+server:describe)
+	case "${3:-}" in
+	someone-elses-server) cat "${F}/hcloud-server-foreign.json" ;;
+	gho-*) cat "${F}/hcloud-server.json" ;;
+	*) exit 1 ;;
+	esac
+	;;
+firewall:describe)
+	case "${3:-}" in
+	gho-bad-fw) cat "${F}/hcloud-firewall-bad.json" ;;
+	gho-*) cat "${F}/hcloud-firewall.json" ;;
+	*) exit 1 ;;
+	esac
+	;;
+ssh-key:describe)
+	case "${3:-}" in
+	gho-*) printf '{"id":4242,"name":"%s","labels":{"managed-by":"ghost-hetzner-oneclick","deployment-id":"ghost-blog-deadbeef"}}\n' "${3}" ;;
+	*) exit 1 ;;
+	esac
+	;;
+firewall:create | server:create | ssh-key:create) echo "created (mock)" ;;
+firewall:replace-rules) echo "rules replaced (mock)" ;;
+server:poweroff | server:reboot | server:delete | firewall:delete | ssh-key:delete) echo "ok (mock)" ;;
+server:enable-backup | server:enable-protection | server:disable-protection) echo "ok (mock)" ;;
+*) exit 1 ;;
+esac

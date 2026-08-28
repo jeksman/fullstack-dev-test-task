@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -u
+[ -n "${GHO_MOCK_LOG:-}" ] && printf 'scp %s\n' "$*" >>"$GHO_MOCK_LOG"
+dest=""
+for a in "$@"; do case "$a" in *@*:*)
+	dest="${a#*@}"
+	dest="${dest%%:*}"
+	;;
+esac done
+case "$dest" in
+100.*) exit "${GHO_MOCK_SCP_RC:-0}" ;;
+*)
+	echo "mock scp: refusing non-tailnet target ${dest}" >&2
+	exit 255
+	;;
+esac

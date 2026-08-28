@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Mock openssl: only the two paths the verifier uses.
+set -u
+[ -n "${GHO_MOCK_LOG:-}" ] && printf 'openssl %s\n' "$*" >>"$GHO_MOCK_LOG"
+LE_NAME="Let$(printf '\047')s Encrypt"
+case "${1:-}" in
+rand) /usr/bin/openssl "$@" ;;
+s_client)
+	printf -- '-----BEGIN CERTIFICATE-----\nMOCK\n-----END CERTIFICATE-----\n'
+	;;
+x509)
+	for a in "$@"; do
+		case "$a" in
+		-issuer)
+			printf 'issuer=C = US, O = %s, CN = E5\n' "${GHO_MOCK_CERT_ISSUER:-$LE_NAME}"
+			exit 0
+			;;
+		-enddate)
+			printf 'notAfter=%s\n' "${GHO_MOCK_CERT_END:-Nov 26 12:00:00 2026 GMT}"
+			exit 0
+			;;
+		-checkend) exit "${GHO_MOCK_CERT_CHECKEND_RC:-0}" ;;
+		esac
+	done
+	exit 0
+	;;
+dgst) /usr/bin/openssl "$@" ;;
+*) /usr/bin/openssl "$@" ;;
+esac

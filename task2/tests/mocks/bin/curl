@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Mock curl: enough of the interface for HTTP status and header probes.
+set -u
+[ -n "${GHO_MOCK_LOG:-}" ] && printf 'curl %s\n' "$*" >>"$GHO_MOCK_LOG"
+want_headers=0
+url=""
+for a in "$@"; do
+	case "$a" in
+	-I | --head | -sSI) want_headers=1 ;;
+	http://* | https://*) url="$a" ;;
+	esac
+done
+case "$url" in
+http://*)
+	if [ "$want_headers" = "1" ]; then
+		printf 'HTTP/1.1 %s\r\nLocation: https://%s/\r\n' "${GHO_MOCK_HTTP_CODE:-301}" "${url#http://}"
+	else
+		printf '%s' "${GHO_MOCK_HTTP_CODE:-301}"
+	fi
+	;;
+https://*) printf '%s' "${GHO_MOCK_HTTPS_CODE:-200}" ;;
+*) exit 1 ;;
+esac
+exit "${GHO_MOCK_CURL_RC:-0}"

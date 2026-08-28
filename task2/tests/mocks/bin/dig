@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Mock dig: answers from GHO_MOCK_DNS_A / GHO_MOCK_DNS_AAAA.
+set -u
+[ -n "${GHO_MOCK_LOG:-}" ] && printf 'dig %s\n' "$*" >>"$GHO_MOCK_LOG"
+type=A
+for a in "$@"; do case "$a" in A | AAAA) type="$a" ;; esac done
+case "$type" in
+A) printf '%s\n' "${GHO_MOCK_DNS_A:-}" ;;
+AAAA) printf '%s\n' "${GHO_MOCK_DNS_AAAA:-}" ;;
+esac

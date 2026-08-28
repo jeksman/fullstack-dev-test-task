@@ -1,0 +1,9 @@
+{
+  "id": 99999999,
+  "name": "someone-elses-server",
+  "status": "running",
+  "labels": { "managed-by": "terraform", "environment": "production" },
+  "image": { "name": "ubuntu-24.04", "architecture": "x86" },
+  "server_type": { "name": "cx23", "architecture": "x86", "memory": 4 },
+  "public_net": { "ipv4": { "ip": "198.51.100.7" }, "ipv6": { "ip": "2001:db8:9::/64" }, "firewalls": [] }
+}
