@@ -137,3 +137,41 @@ def test_denied_request_returns_403_not_an_empty_200(
     )
     assert response.status_code == 403
     assert response.json()["detail"]
+
+
+@pytest.mark.parametrize(
+    ("role", "expected"),
+    [(Role.ADMIN, ALLOWED), (Role.MANAGER, ALLOWED), (Role.MEMBER, DENIED)],
+)
+def test_reading_another_user_requires_user_read_any(
+    client: TestClient,
+    db: Session,
+    headers_for: HeadersFor,
+    caplog: pytest.LogCaptureFixture,
+    role: Role,
+    expected: int,
+) -> None:
+    """`GET /users/{id}` is the one endpoint whose rule is "self or read_any",
+    so it authorizes inline rather than through `require(...)` — this pins that
+    it still goes through the policy, audit log included."""
+    target = crud.create_user(
+        session=db,
+        user_create=UserCreate(
+            email=random_email(), password=random_lower_string(), role=Role.MEMBER
+        ),
+    )
+    with caplog.at_level("WARNING", logger="app.core.use_cases.authorization_policy"):
+        response = client.get(
+            f"{settings.API_V1_STR}/users/{target.id}", headers=headers_for(role)
+        )
+
+    assert response.status_code == expected
+    denials = [
+        r.getMessage() for r in caplog.records if "access denied" in r.getMessage()
+    ]
+    if expected == DENIED:
+        assert len(denials) == 1
+        assert Permission.USER_READ_ANY in denials[0]
+        assert str(target.id) in denials[0]
+    else:
+        assert denials == []

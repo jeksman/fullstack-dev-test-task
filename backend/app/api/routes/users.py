@@ -2,7 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import col, delete, func, select
+from sqlmodel import col, delete
 
 from app import crud
 from app.api.deps import (
@@ -10,16 +10,17 @@ from app.api.deps import (
     CurrentActor,
     CurrentUser,
     ListUsersDep,
+    PolicyDep,
     SessionDep,
     UpdateOwnProfileDep,
     require,
 )
 from app.core.config import settings
 from app.core.domain.exceptions import AccessDenied, EmailAlreadyTaken
-from app.core.domain.rbac import ROLE_PERMISSIONS, Permission, Role
+from app.core.domain.rbac import Permission, Role
 from app.core.domain.user import NewUser, ProfileUpdate
-from app.infrastructure.mappers import to_public
 from app.core.security import get_password_hash, verify_password
+from app.infrastructure.mappers import to_public
 from app.models import (
     Item,
     Message,
@@ -182,17 +183,21 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 
 
 @router.get("/me/permissions", response_model=list[Permission])
-def read_own_permissions(actor: CurrentActor) -> Any:
+def read_own_permissions(actor: CurrentActor, policy: PolicyDep) -> Any:
     """
     The capabilities of the current user. The frontend renders from this list
     instead of hardcoding role names.
     """
-    return sorted(ROLE_PERMISSIONS[actor.role])
+    return sorted(policy.permissions_of(actor.role))
 
 
 @router.get("/{user_id}", response_model=UserPublic)
 def read_user_by_id(
-    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser, actor: CurrentActor
+    user_id: uuid.UUID,
+    session: SessionDep,
+    current_user: CurrentUser,
+    actor: CurrentActor,
+    policy: PolicyDep,
 ) -> Any:
     """
     Get a specific user by id. Anyone may read themselves; reading someone else
@@ -201,11 +206,10 @@ def read_user_by_id(
     if user_id == current_user.id:
         return current_user
     # Authorized before the lookup, so a denied caller cannot probe which ids exist.
-    if Permission.USER_READ_ANY not in ROLE_PERMISSIONS[actor.role]:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
+    try:
+        policy.require(actor, Permission.USER_READ_ANY, resource=f"users/{user_id}")
+    except AccessDenied as exc:
+        raise _deny(exc)
     user = session.get(User, user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -244,7 +248,9 @@ def update_user(
     return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(require(Permission.USER_DELETE_ANY))])
+@router.delete(
+    "/{user_id}", dependencies=[Depends(require(Permission.USER_DELETE_ANY))]
+)
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:

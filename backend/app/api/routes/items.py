@@ -4,16 +4,17 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from sqlmodel import col, func, select
 
-from app.api.deps import CurrentActor, CurrentUser, SessionDep
-from app.core.domain.rbac import ROLE_PERMISSIONS, Permission
+from app.api.deps import CurrentActor, CurrentUser, PolicyDep, SessionDep
+from app.core.domain.rbac import Permission
 from app.core.domain.user import User as UserEntity
-
-
-def _may_manage_any_item(actor: UserEntity) -> bool:
-    """Items are owner-scoped; this permission lifts that scope."""
-    return Permission.ITEM_MANAGE_ANY in ROLE_PERMISSIONS[actor.role]
-
+from app.core.use_cases.authorization_policy import AuthorizationPolicy
 from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
+
+
+def _may_manage_any_item(policy: AuthorizationPolicy, actor: UserEntity) -> bool:
+    """Items are owner-scoped; this permission lifts that scope."""
+    return policy.grants(actor.role, Permission.ITEM_MANAGE_ANY)
+
 
 router = APIRouter(prefix="/items", tags=["items"])
 
@@ -23,6 +24,7 @@ def read_items(
     session: SessionDep,
     current_user: CurrentUser,
     actor: CurrentActor,
+    policy: PolicyDep,
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
@@ -30,7 +32,7 @@ def read_items(
     Retrieve items.
     """
 
-    if _may_manage_any_item(actor):
+    if _may_manage_any_item(policy, actor):
         count_statement = select(func.count()).select_from(Item)
         count = session.exec(count_statement).one()
         statement = (
@@ -59,7 +61,11 @@ def read_items(
 
 @router.get("/{id}", response_model=ItemPublic)
 def read_item(
-    session: SessionDep, current_user: CurrentUser, actor: CurrentActor, id: uuid.UUID
+    session: SessionDep,
+    current_user: CurrentUser,
+    actor: CurrentActor,
+    policy: PolicyDep,
+    id: uuid.UUID,
 ) -> Any:
     """
     Get item by ID.
@@ -67,7 +73,7 @@ def read_item(
     item = session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    if not _may_manage_any_item(actor) and (item.owner_id != current_user.id):
+    if not _may_manage_any_item(policy, actor) and (item.owner_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return item
 
@@ -92,6 +98,7 @@ def update_item(
     session: SessionDep,
     current_user: CurrentUser,
     actor: CurrentActor,
+    policy: PolicyDep,
     id: uuid.UUID,
     item_in: ItemUpdate,
 ) -> Any:
@@ -101,7 +108,7 @@ def update_item(
     item = session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    if not _may_manage_any_item(actor) and (item.owner_id != current_user.id):
+    if not _may_manage_any_item(policy, actor) and (item.owner_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     update_dict = item_in.model_dump(exclude_unset=True)
     item.sqlmodel_update(update_dict)
@@ -113,7 +120,11 @@ def update_item(
 
 @router.delete("/{id}")
 def delete_item(
-    session: SessionDep, current_user: CurrentUser, actor: CurrentActor, id: uuid.UUID
+    session: SessionDep,
+    current_user: CurrentUser,
+    actor: CurrentActor,
+    policy: PolicyDep,
+    id: uuid.UUID,
 ) -> Message:
     """
     Delete an item.
@@ -121,7 +132,7 @@ def delete_item(
     item = session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    if not _may_manage_any_item(actor) and (item.owner_id != current_user.id):
+    if not _may_manage_any_item(policy, actor) and (item.owner_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     session.delete(item)
     session.commit()
