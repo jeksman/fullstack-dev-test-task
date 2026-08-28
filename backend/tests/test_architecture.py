@@ -56,8 +56,6 @@ def test_core_packages_are_not_empty() -> None:
 def test_core_module_has_no_outward_imports(module: Path) -> None:
     tree = ast.parse(module.read_text())
     offenders = [
-        name
-        for name in _imported_names(tree)
-        if name.startswith(FORBIDDEN_PREFIXES)
+        name for name in _imported_names(tree) if name.startswith(FORBIDDEN_PREFIXES)
     ]
     assert not offenders, f"{module.name} imports outer-layer modules: {offenders}"

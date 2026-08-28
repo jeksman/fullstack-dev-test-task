@@ -39,11 +39,11 @@ class SQLModelUserRepository(AbstractUserRepository):
             is_active=new_user.is_active,
             full_name=new_user.full_name,
         )
-        return to_entity(crud.create_user(session=self._session, user_create=user_create))
+        return to_entity(
+            crud.create_user(session=self._session, user_create=user_create)
+        )
 
-    def update_profile(
-        self, user_id: uuid.UUID, changes: ProfileUpdate
-    ) -> UserEntity:
+    def update_profile(self, user_id: uuid.UUID, changes: ProfileUpdate) -> UserEntity:
         db_user = self._session.get(UserModel, user_id)
         if not db_user:
             raise UserNotFound(str(user_id))

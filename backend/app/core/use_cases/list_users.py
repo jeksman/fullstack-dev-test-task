@@ -11,8 +11,6 @@ class ListUsersUseCase:
         self._users = users
         self._policy = policy
 
-    def execute(
-        self, *, actor: User, skip: int, limit: int
-    ) -> tuple[list[User], int]:
+    def execute(self, *, actor: User, skip: int, limit: int) -> tuple[list[User], int]:
         self._policy.require(actor, Permission.USER_LIST, resource="users")
         return self._users.list(skip=skip, limit=limit)

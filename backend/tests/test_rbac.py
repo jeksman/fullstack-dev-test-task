@@ -16,9 +16,7 @@ from app.core.use_cases.update_own_profile import UpdateOwnProfileUseCase
 
 
 def actor(role: Role) -> User:
-    return User(
-        id=uuid.uuid4(), email=f"{role}@example.com", role=role, is_active=True
-    )
+    return User(id=uuid.uuid4(), email=f"{role}@example.com", role=role, is_active=True)
 
 
 # The documented permission matrix, restated as a test so the README and the

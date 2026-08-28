@@ -16,7 +16,7 @@ def get_datetime_utc() -> datetime:
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
-    role: Role = Field(default=Role.MEMBER, sa_type=String(20))
+    role: Role = Field(default=Role.MEMBER, sa_type=String(20))  # type: ignore
     # Legacy flag kept so existing migrations and clients keep working. It is
     # derived from `role` in crud and is never read to make an access decision.
     is_superuser: bool = False
