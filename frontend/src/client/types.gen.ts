@@ -123,6 +123,24 @@ export type Message = {
 };
 
 /**
+ * MetricsSummary
+ */
+export type MetricsSummary = {
+    /**
+     * Total Users
+     */
+    total_users: number;
+    /**
+     * Active Users
+     */
+    active_users: number;
+    /**
+     * Total Items
+     */
+    total_items: number;
+};
+
+/**
  * NewPassword
  */
 export type NewPassword = {
@@ -135,6 +153,11 @@ export type NewPassword = {
      */
     new_password: string;
 };
+
+/**
+ * Permission
+ */
+export type Permission = 'user:list' | 'user:create' | 'user:read_any' | 'user:update_any' | 'user:delete_any' | 'metrics:view' | 'settings:manage' | 'item:manage_any' | 'profile:update_own';
 
 /**
  * PrivateUserCreate
@@ -157,6 +180,11 @@ export type PrivateUserCreate = {
      */
     is_verified?: boolean;
 };
+
+/**
+ * Role
+ */
+export type Role = 'admin' | 'manager' | 'member';
 
 /**
  * Token
@@ -198,6 +226,7 @@ export type UserCreate = {
      * Is Active
      */
     is_active?: boolean;
+    role?: Role;
     /**
      * Is Superuser
      */
@@ -224,6 +253,7 @@ export type UserPublic = {
      * Is Active
      */
     is_active?: boolean;
+    role?: Role;
     /**
      * Is Superuser
      */
@@ -272,10 +302,7 @@ export type UserUpdate = {
      * Is Active
      */
     is_active?: boolean | null;
-    /**
-     * Is Superuser
-     */
-    is_superuser?: boolean | null;
+    role?: Role | null;
     /**
      * Full Name
      */
@@ -634,6 +661,24 @@ export type usersRegisterUserResponses = {
 
 export type usersRegisterUserResponse = usersRegisterUserResponses[keyof usersRegisterUserResponses];
 
+export type usersReadOwnPermissionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/permissions';
+};
+
+export type usersReadOwnPermissionsResponses = {
+    /**
+     * Response Users-Read Own Permissions
+     *
+     * Successful Response
+     */
+    200: Array<Permission>;
+};
+
+export type usersReadOwnPermissionsResponse = usersReadOwnPermissionsResponses[keyof usersReadOwnPermissionsResponses];
+
 export type usersDeleteUserData = {
     body?: never;
     path: {
@@ -920,6 +965,22 @@ export type itemsUpdateItemResponses = {
 };
 
 export type itemsUpdateItemResponse = itemsUpdateItemResponses[keyof itemsUpdateItemResponses];
+
+export type metricsReadMetricsSummaryData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/metrics/summary';
+};
+
+export type metricsReadMetricsSummaryResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricsSummary;
+};
+
+export type metricsReadMetricsSummaryResponse = metricsReadMetricsSummaryResponses[keyof metricsReadMetricsSummaryResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

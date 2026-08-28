@@ -2,8 +2,10 @@ import uuid
 from datetime import UTC, datetime
 
 from pydantic import EmailStr
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, String
 from sqlmodel import Field, Relationship, SQLModel
+
+from app.core.domain.rbac import Role
 
 
 def get_datetime_utc() -> datetime:
@@ -14,6 +16,9 @@ def get_datetime_utc() -> datetime:
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
+    role: Role = Field(default=Role.MEMBER, sa_type=String(20))
+    # Legacy flag kept so existing migrations and clients keep working. It is
+    # derived from `role` in crud and is never read to make an access decision.
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
 
@@ -33,7 +38,7 @@ class UserRegister(SQLModel):
 class UserUpdate(SQLModel):
     email: EmailStr | None = Field(default=None, max_length=255)
     is_active: bool | None = None
-    is_superuser: bool | None = None
+    role: Role | None = None
     full_name: str | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, min_length=8, max_length=128)
 

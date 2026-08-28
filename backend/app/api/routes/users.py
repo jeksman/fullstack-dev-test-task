@@ -6,11 +6,19 @@ from sqlmodel import col, delete, func, select
 
 from app import crud
 from app.api.deps import (
+    CreateUserDep,
+    CurrentActor,
     CurrentUser,
+    ListUsersDep,
     SessionDep,
-    get_current_active_superuser,
+    UpdateOwnProfileDep,
+    require,
 )
 from app.core.config import settings
+from app.core.domain.exceptions import AccessDenied, EmailAlreadyTaken
+from app.core.domain.rbac import ROLE_PERMISSIONS, Permission, Role
+from app.core.domain.user import NewUser, ProfileUpdate
+from app.infrastructure.mappers import to_public
 from app.core.security import get_password_hash, verify_password
 from app.models import (
     Item,
@@ -29,43 +37,57 @@ from app.utils import generate_new_account_email, send_email
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get(
-    "/",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
-)
-def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
-    """
-    Retrieve users.
-    """
-
-    count_statement = select(func.count()).select_from(User)
-    count = session.exec(count_statement).one()
-
-    statement = (
-        select(User).order_by(col(User.created_at).desc()).offset(skip).limit(limit)
+def _deny(_: AccessDenied) -> HTTPException:
+    """AuthorizationPolicy already logged the reason; the client gets a plain
+    refusal so the permission taxonomy is not echoed back."""
+    return HTTPException(
+        status_code=403, detail="The user doesn't have enough privileges"
     )
-    users = session.exec(statement).all()
-
-    users_public = [UserPublic.model_validate(user) for user in users]
-    return UsersPublic(data=users_public, count=count)
 
 
-@router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
-)
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+@router.get("/", response_model=UsersPublic)
+def read_users(
+    actor: CurrentActor,
+    list_users: ListUsersDep,
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
     """
-    Create new user.
+    Retrieve users. Requires `user:list` (admin, manager).
     """
-    user = crud.get_user_by_email(session=session, email=user_in.email)
-    if user:
+    try:
+        users, count = list_users.execute(actor=actor, skip=skip, limit=limit)
+    except AccessDenied as exc:
+        raise _deny(exc)
+    return UsersPublic(data=[to_public(user) for user in users], count=count)
+
+
+@router.post("/", response_model=UserPublic)
+def create_user(
+    *, actor: CurrentActor, create: CreateUserDep, user_in: UserCreate
+) -> Any:
+    """
+    Create new user. Requires `user:create` (admin).
+    """
+    try:
+        user = create.execute(
+            actor=actor,
+            new_user=NewUser(
+                email=user_in.email,
+                password=user_in.password,
+                role=user_in.role,
+                is_active=user_in.is_active,
+                full_name=user_in.full_name,
+            ),
+        )
+    except AccessDenied as exc:
+        raise _deny(exc)
+    except EmailAlreadyTaken:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
 
-    user = crud.create_user(session=session, user_create=user_in)
     if settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -75,29 +97,29 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
             subject=email_data.subject,
             html_content=email_data.html_content,
         )
-    return user
+    return to_public(user)
 
 
 @router.patch("/me", response_model=UserPublic)
 def update_user_me(
-    *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
+    *, actor: CurrentActor, update_profile: UpdateOwnProfileDep, user_in: UserUpdateMe
 ) -> Any:
     """
-    Update own user.
+    Update own user. `UserUpdateMe` has no role field, so this endpoint cannot
+    be used to escalate privileges.
     """
-
-    if user_in.email:
-        existing_user = crud.get_user_by_email(session=session, email=user_in.email)
-        if existing_user and existing_user.id != current_user.id:
-            raise HTTPException(
-                status_code=409, detail="User with this email already exists"
-            )
-    user_data = user_in.model_dump(exclude_unset=True)
-    current_user.sqlmodel_update(user_data)
-    session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
-    return current_user
+    try:
+        user = update_profile.execute(
+            actor=actor,
+            changes=ProfileUpdate(email=user_in.email, full_name=user_in.full_name),
+        )
+    except AccessDenied as exc:
+        raise _deny(exc)
+    except EmailAlreadyTaken:
+        raise HTTPException(
+            status_code=409, detail="User with this email already exists"
+        )
+    return to_public(user)
 
 
 @router.patch("/me/password", response_model=Message)
@@ -134,9 +156,9 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own user.
     """
-    if current_user.is_superuser:
+    if current_user.role == Role.ADMIN:
         raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
+            status_code=403, detail="Admins are not allowed to delete themselves"
         )
     session.delete(current_user)
     session.commit()
@@ -159,21 +181,32 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     return user
 
 
+@router.get("/me/permissions", response_model=list[Permission])
+def read_own_permissions(actor: CurrentActor) -> Any:
+    """
+    The capabilities of the current user. The frontend renders from this list
+    instead of hardcoding role names.
+    """
+    return sorted(ROLE_PERMISSIONS[actor.role])
+
+
 @router.get("/{user_id}", response_model=UserPublic)
 def read_user_by_id(
-    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser, actor: CurrentActor
 ) -> Any:
     """
-    Get a specific user by id.
+    Get a specific user by id. Anyone may read themselves; reading someone else
+    requires `user:read_any` (admin, manager).
     """
-    user = session.get(User, user_id)
-    if user == current_user:
-        return user
-    if not current_user.is_superuser:
+    if user_id == current_user.id:
+        return current_user
+    # Authorized before the lookup, so a denied caller cannot probe which ids exist.
+    if Permission.USER_READ_ANY not in ROLE_PERMISSIONS[actor.role]:
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",
         )
+    user = session.get(User, user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -181,7 +214,7 @@ def read_user_by_id(
 
 @router.patch(
     "/{user_id}",
-    dependencies=[Depends(get_current_active_superuser)],
+    dependencies=[Depends(require(Permission.USER_UPDATE_ANY))],
     response_model=UserPublic,
 )
 def update_user(
@@ -211,7 +244,7 @@ def update_user(
     return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
+@router.delete("/{user_id}", dependencies=[Depends(require(Permission.USER_DELETE_ANY))])
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
@@ -223,7 +256,7 @@ def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     if user == current_user:
         raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
+            status_code=403, detail="Admins are not allowed to delete themselves"
         )
     statement = delete(Item).where(col(Item.owner_id) == user_id)
     session.exec(statement)
