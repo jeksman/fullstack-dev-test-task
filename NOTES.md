@@ -56,7 +56,7 @@
 
 ## Verification performed
 
-- `uv run pytest` — 111 passed (109 template + new RBAC, architecture, and
+- `uv run pytest` — 114 passed (109 template + new RBAC, architecture, and
   audit-log tests).
 - `bun run lint` and `bun run --filter frontend build` — clean, including
   `tsc` typecheck.
@@ -67,6 +67,8 @@
   `PATCH /users/me` leaves the role unchanged, and each denial appears in the
   audit log.
 - `bunx playwright test tests/rbac.spec.ts` — 3 passed against that stack.
+- `uv run ruff check`, `uv run ruff format --check` and `uv run mypy` — clean
+  (the three gates `.pre-commit-config.yaml` runs).
 
 One thing worth naming: my first pass at the Playwright test asserted only the
 *absence* of the Add User button for a manager. It passed against a page that

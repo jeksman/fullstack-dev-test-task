@@ -185,12 +185,17 @@ mkdir -p app/frontend                 # only if you have not built the frontend
 uv run pytest
 ```
 
-111 tests pass. The ones added here:
+The template's session fixture truncates `user` and `item` when the run ends, so
+pointing `pytest` at the database the running stack uses empties it. Re-run
+`python -m app.seed_data` afterwards before browsing the app or running the
+Playwright suite.
+
+114 tests pass. The ones added here:
 
 | File | Covers |
 |---|---|
 | `tests/test_rbac.py` | the matrix as a pure function; use cases with a mocked repository port — no DB, no HTTP; denials are logged, grants are not |
-| `tests/api/routes/test_authorization.py` | HTTP translation: every protected endpoint asserted allowed *and* denied per role, self-escalation via `PATCH /users/me`, role-free signup, `403` rather than an empty `200` |
+| `tests/api/routes/test_authorization.py` | HTTP translation: every protected endpoint asserted allowed *and* denied per role, `user:read_any` denials reaching the audit log, self-escalation via `PATCH /users/me`, role-free signup, `403` rather than an empty `200` |
 | `tests/test_architecture.py` | the dependency rule, by AST walk over `core/` |
 
 Frontend typecheck and build:
@@ -198,6 +203,15 @@ Frontend typecheck and build:
 ```bash
 bun run lint
 bun run --filter frontend build
+```
+
+Backend lint and types (the gates `.pre-commit-config.yaml` runs):
+
+```bash
+cd backend
+uv run ruff check app tests
+uv run ruff format --check app tests
+uv run mypy app
 ```
 
 Role-aware UI behaviour (needs the stack up and seeded):
